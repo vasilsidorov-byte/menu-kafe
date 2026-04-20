@@ -150,8 +150,37 @@ let currentSection="obidy";
 let menuData={};
 let ordersData={};
 
+const SESSION_KEY="cafe_waiter_session";
+const SESSION_HOURS=8;
+
+function saveSession(user){
+  const session={user,expires:Date.now()+SESSION_HOURS*60*60*1000};
+  localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+}
+function loadSession(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SESSION_KEY));
+    if(s&&s.expires>Date.now())return s.user;
+    localStorage.removeItem(SESSION_KEY);
+  }catch{}
+  return null;
+}
+function clearSession(){localStorage.removeItem(SESSION_KEY);}
+
+function startApp(user){
+  currentUser=user;
+  document.getElementById("login-screen").style.display="none";
+  document.getElementById("app-screen").style.display="block";
+  document.getElementById("waiter-name").textContent=user.name;
+  cart={};renderMenu("obidy");
+}
+
 onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};if(currentUser)renderMenu(currentSection);});
 onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
+
+// Auto-login if session exists
+const savedSession=loadSession();
+if(savedSession)startApp(savedSession);
 
 document.getElementById("pwd-input").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 
@@ -161,15 +190,14 @@ window.doLogin=async function(){
   const snap=await get(ref(db,"cafe/users/"+login));
   const u=snap.val();
   if(u&&u.role==="waiter"&&u.password===pwd){
-    currentUser={login,name:u.name};
-    document.getElementById("login-screen").style.display="none";
-    document.getElementById("app-screen").style.display="block";
-    document.getElementById("waiter-name").textContent=u.name;
-    cart={};renderMenu("obidy");
+    const user={login,name:u.name};
+    saveSession(user);
+    startApp(user);
   }else{document.getElementById("lerr").textContent="Невірний логін або пароль";}
 };
 window.doLogout=function(){
   currentUser=null;cart={};
+  clearSession();
   document.getElementById("login-screen").style.display="flex";
   document.getElementById("app-screen").style.display="none";
 };
