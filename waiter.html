@@ -229,7 +229,7 @@ function updateCartBar(){
   const count=items.reduce((s,i)=>s+i.qty,0);
   document.getElementById("cart-bar").style.display=count>0?"flex":"none";
   document.getElementById("cart-count").textContent=count+" позицій";
-  document.getElementById("cart-total").textContent=total.toFixed(0)+" грн";
+  document.getElementById("cart-total").textContent=total.toFixed(2)+" грн";
 }
 
 function getCartItems(){
@@ -249,9 +249,9 @@ window.goConfirm=function(){
   let html="";let total=0;
   items.forEach(i=>{
     const sub=parseFloat(i.price)*i.qty;total+=sub;
-    html+=`<div class="order-item-row"><span>${i.name} × ${i.qty}</span><span style="font-weight:700">${sub.toFixed(0)} грн</span></div>`;
+    html+=`<div class="order-item-row"><span>${i.name} × ${i.qty}</span><span style="font-weight:700">${sub.toFixed(2)} грн</span></div>`;
   });
-  html+=`<div style="padding-top:10px;font-weight:800;display:flex;justify-content:space-between"><span>Разом</span><span>${total.toFixed(0)} грн</span></div>`;
+  html+=`<div style="padding-top:10px;font-weight:800;display:flex;justify-content:space-between"><span>Разом</span><span>${total.toFixed(2)} грн</span></div>`;
   document.getElementById("order-summary").innerHTML=html;
   renderTableGrid();
 };
