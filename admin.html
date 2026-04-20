@@ -181,6 +181,32 @@ onValue(ref(db,"cafe/menu"),snap=>{menuData=snap.val()||{};renderAll();});
 onValue(ref(db,"cafe/users"),snap=>{usersData=snap.val()||{};renderUsers();});
 onValue(ref(db,"cafe/orders"),snap=>{ordersData=snap.val()||{};});
 
+const ADMIN_SESSION_KEY="cafe_admin_session";
+
+function saveAdminSession(){
+  localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify({expires:Date.now()+60*60*1000}));
+}
+function loadAdminSession(){
+  try{
+    const s=JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY));
+    if(s&&s.expires>Date.now())return true;
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+  }catch{}
+  return false;
+}
+function clearAdminSession(){localStorage.removeItem(ADMIN_SESSION_KEY);}
+
+function startAdminApp(){
+  document.getElementById("login-screen").style.display="none";
+  document.getElementById("app-screen").style.display="block";
+  renderAll();
+}
+
+// Auto-login if session valid
+if(loadAdminSession()){
+  initDB().then(()=>startAdminApp());
+}
+
 document.getElementById("pwd").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 
 window.doLogin=async function(){
@@ -189,11 +215,12 @@ window.doLogin=async function(){
   const u=snap.val();
   const v=document.getElementById("pwd").value;
   if(u&&v===u.password){
-    document.getElementById("login-screen").style.display="none";
-    document.getElementById("app-screen").style.display="block";
+    saveAdminSession();
+    startAdminApp();
   }else{document.getElementById("lerr").textContent="Невірний пароль";}
 };
 window.doLogout=function(){
+  clearAdminSession();
   document.getElementById("login-screen").style.display="flex";
   document.getElementById("app-screen").style.display="none";
   document.getElementById("pwd").value="";
