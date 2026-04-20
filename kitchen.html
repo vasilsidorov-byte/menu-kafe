@@ -8,6 +8,16 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
+.k-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.k-login-card{background:#1e3a1e;border-radius:16px;padding:32px 28px;width:100%;max-width:360px;text-align:center;border:1px solid #2a5a2a}
+.k-login-card img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #f5a623;margin-bottom:16px}
+.k-login-card h2{font-size:20px;font-weight:800;color:#f5a623;margin-bottom:4px}
+.k-login-card p{font-size:13px;color:#8aab8a;margin-bottom:24px}
+.k-input{width:100%;padding:12px 14px;border:1.5px solid #2a5a2a;border-radius:10px;font-family:inherit;font-size:15px;outline:none;color:#fff;background:#152a15;margin-bottom:12px}
+.k-input:focus{border-color:#f5a623}
+.k-btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;background:#f5a623;color:#fff}
+.k-btn:hover{opacity:.88}
+.k-err{color:#ff6b6b;font-size:13px;margin-top:8px}
 .k-header{background:#1e3a1e;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #f5a623}
 .k-header img{width:48px;height:48px;border-radius:50%;border:2px solid #f5a623;object-fit:cover}
 .k-title{color:#fff;font-size:18px;font-weight:800}
@@ -36,6 +46,17 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 </style>
 </head>
 <body>
+<div class="k-login" id="k-login-screen">
+  <div class="k-login-card">
+    <img id="k-login-logo" alt="">
+    <h2>Кухня</h2>
+    <p>Навчальне кафе коледжу</p>
+    <input class="k-input" type="password" id="k-pwd" placeholder="Введіть пароль">
+    <button class="k-btn" onclick="doKitchenLogin()">Увійти</button>
+    <p class="k-err" id="k-err"></p>
+  </div>
+</div>
+<div style="display:none" id="k-app">
 <div class="k-header">
   <div style="display:flex;align-items:center;gap:12px">
     <img id="k-logo" alt="">
@@ -48,6 +69,52 @@ body{font-family:"Nunito",sans-serif;background:#1a2a1a;min-height:100vh}
 </div>
 <div class="new-badge hidden" id="new-badge">🔔 Нове замовлення!</div>
 <div id="orders-container"></div>
+</div>
+<script>
+// Session check
+const KITCHEN_PASS = "Kitchen123";
+const SESSION_KEY = "kitchen_session";
+const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
+
+function checkSession() {
+  const s = localStorage.getItem(SESSION_KEY);
+  if (!s) return false;
+  try {
+    const { expiry } = JSON.parse(s);
+    return Date.now() < expiry;
+  } catch { return false; }
+}
+
+function saveSession() {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ expiry: Date.now() + SESSION_DURATION }));
+}
+
+window.doKitchenLogin = function() {
+  const pwd = document.getElementById("k-pwd").value;
+  if (pwd === KITCHEN_PASS) {
+    saveSession();
+    document.getElementById("k-login-screen").style.display = "none";
+    document.getElementById("k-app").style.display = "block";
+    document.getElementById("k-login-logo").src = LOGO_SRC;
+  } else {
+    document.getElementById("k-err").textContent = "Невірний пароль";
+  }
+};
+
+document.addEventListener("DOMContentLoaded", function() {
+  if (checkSession()) {
+    document.getElementById("k-login-screen").style.display = "none";
+    document.getElementById("k-app").style.display = "block";
+  }
+});
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    const err = document.getElementById("k-err");
+    if (err) window.doKitchenLogin();
+  }
+});
+</script>
 <script type="module">
 const firebaseConfig = {
   apiKey: "AIzaSyAnWD4kWKRyUkHkeyR5oTJRoGz5fjDwFN4",
